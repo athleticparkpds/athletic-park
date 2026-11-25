@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><script src="https://myhub.ia.br/canvas-vendor/tailwind.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Athletic Park</title>
+  <meta name="theme-color" content="#1e3a5f">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; }
+    .container { max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+    .screen { display: none; padding: 20px; padding-bottom: 80px; }
+    .screen.active { display: block; }
+    h2 { margin-bottom: 16px; color: #1e3a5f; }
+    input, select, button { width: 100%; padding: 12px 14px; border-radius: 10px; font-size: 15px; margin-bottom: 10px; border: 1px solid #cbd5e1; }
+    button { border: none; cursor: pointer; font-weight: 600; }
+    .btn-primary { background: #1e3a5f; color: #fff; }
+    .btn-danger { background: #fee2e2; color: #b91c1c; }
+    textarea { width: 100%; min-height: 60px; padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1; margin-bottom: 10px; font-size: 14px; }
+    .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: #fff; border-top: 1px solid #e2e8f0; display: flex; padding: 8px 0; z-index: 100; }
+    .nav button { background: none; color: #64748b; margin: 0; padding: 8px 0; font-size: 12px; border-radius: 8px; }
+    .nav button.active { color: #1e3a5f; font-weight: 600; }
+    .jogador { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+    .avatar { width: 44px; height: 44px; border-radius: 50%; background: #dbeafe; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; overflow: hidden; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .team-box { background: #f8fafc; border-radius: 12px; padding: 14px; margin-bottom: 12px; border-left: 4px solid #1e3a5f; }
+    .logo-header { display:block; margin:20px auto 12px; width:120px; height:120px; object-fit:contain; border-radius:50%; box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+    /* Esconde badge Netlify */
+    .netlify-badge, #netlify-badge, [data-netlify="true"], .netlify-button, footer[class*="netlify"], #netlify-redirect, .netlify-banner, div[id*="netlify"], .netlify-fingerprint, #nf-banner, .nf-banner, [class*="powered"], [id*="Powered"], [class*="Powered"], [id*="powered"] { display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; overflow: hidden !important; }
+    @media (max-width: 480px) { .container { box-shadow: none; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Login -->
+    <div id="login-screen" class="screen active">
+      <img src="https://i.postimg.cc/RVXstJxL/Screenshot-20261114-094056-Whats-App.jpg" alt="Logo Athletic Park" class="logo-header">
+      <h2 style="text-align:center; margin-top:0;">Athletic Park</h2>
+      <p style="text-align:center; color:#64748b; font-size:13px; margin-bottom:24px;">Login com Google para continuar</p>
+      <button onclick="loginGoogle()" class="btn-primary">🔑 Entrar com Google</button>
+      <p id="login-msg" style="text-align:center; margin-top:12px; font-size:12px; color:#b91c1c;"></p>
+    </div>
+
+    <!-- Home -->
+    <div id="home-screen" class="screen">
+      <h2>🏠 Início</h2>
+      <div id="resumo-card" style="background:#f8fafc; border-radius:12px; padding:16px; margin-bottom:16px;"></div>
+      <button onclick="show('sorteio-screen')" class="btn-primary">🎲 Sortear Times</button>
+    </div>
+
+    <!-- Jogadores -->
+    <div id="jogadores-screen" class="screen">
+      <h2>👥 Jogadores</h2>
+      <button onclick="show('add-jogador-screen')" class="btn-primary">➕ Adicionar Jogador</button>
+      <div id="lista-jogadores"></div>
+    </div>
+
+    <!-- Adicionar Jogador -->
+    <div id="add-jogador-screen" class="screen">
+      <h2 id="add-jogador-titulo">➕ Novo Jogador</h2>
+      <input type="text" id="novo-nome" placeholder="Nome">
+      <input type="file" id="novo-foto" accept="image/*" style="padding:8px;">
+      <select id="novo-nota">
+        <option value="5">5 - Craque</option>
+        <option value="4">4 - Bom</option>
+        <option value="3">3 - Médio</option>
+        <option value="2">2 - Fraquinho</option>
+        <option value="1">1 - Iniciante</option>
+      </select>
+      <button id="add-jogador-btn" onclick="adicionarJogador()" class="btn-primary">Salvar</button>
+      <button onclick="show('jogadores-screen')" class="btn-danger">Cancelar</button>
+    </div>
+
+    <!-- Sorteio -->
+    <div id="sorteio-screen" class="screen">
+      <h2>🎲 Sortear Times</h2>
+      <select id="tipo-sorteio">
+        <option value="aleatorio">Aleatório puro</option>
+        <option value="equilibrado">Equilibrado (por nota)</option>
+      </select>
+      <select id="quantos-por-time">
+        <option value="1">1 jogador por time</option>
+        <option value="2">2 por time</option>
+        <option value="3">3 por time</option>
+        <option value="4">4 por time</option>
+        <option value="5">5 por time</option>
+        <option value="6">6 por time</option>
+        <option value="7">7 por time</option>
+        <option value="8">8 por time</option>
+        <option value="9">9 por time</option>
+        <option value="10">10 por time</option>
+        <option value="11">11 por time</option>
+        <option value="12">12 por time</option>
+        <option value="13">13 por time</option>
+        <option value="14">14 por time</option>
+        <option value="15">15 por time</option>
+        <option value="16">16 por time</option>
+        <option value="17">17 por time</option>
+        <option value="18">18 por time</option>
+        <option value="19">19 por time</option>
+        <option value="20">20 por time</option>
+      </select>
+      <button onclick="sortearTimes()" class="btn-primary">🎲 Sortear</button>
+      <div id="resultado-sorteio" style="margin-top:16px;"></div>
+      <button onclick="mostrarPresenca()" class="btn-primary" style="margin-top:12px;">✅ Marcar presença (domingo)</button>
+      <div id="presenca-container" style="margin-top:12px;display:none;"></div>
+    </div>
+
+    <!-- Ranking -->
+    <div id="ranking-screen" class="screen">
+      <h2>📊 Ranking</h2>
+      <div id="rank-frequencia"></div>
+      <div id="rank-nivel" style="margin-top:16px;"></div>
+    </div>
+
+    <!-- Festival -->
+    <div id="festival-screen" class="screen">
+      <h2>🎉 Festival Mensal</h2>
+      <p style="font-size:13px; color:#64748b; margin-bottom:12px;">Selecione os participantes e sorteie times equilibrados para o festival.</p>
+      <div id="lista-festival"></div>
+      <button onclick="sorteioFestival()" class="btn-primary">🎲 Sortear Festival</button>
+      <div id="resultado-festival" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- Rachão -->
+    <div id="racha-screen" class="screen">
+      <h2>🏃 Rachão</h2>
+      <p style="font-size:13px; color:#64748b; margin-bottom:12px;">Sorteio livre, sem vínculo com a lista de jogadores.</p>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="racha-nome" placeholder="Nome do jogador" style="flex:1;">
+        <button onclick="addRachaName()" style="width:auto; padding:0 16px;">➕</button>
+      </div>
+      <div id="lista-racha" style="margin-top:12px;"></div>
+      <select id="racha-por-time" style="margin-top:16px;">
+        <option value="1">1 por time</option>
+        <option value="2">2 por time</option>
+        <option value="3">3 por time</option>
+        <option value="4">4 por time</option>
+        <option value="5">5 por time</option>
+        <option value="6">6 por time</option>
+        <option value="7">7 por time</option>
+        <option value="8">8 por time</option>
+        <option value="9">9 por time</option>
+        <option value="10">10 por time</option>
+        <option value="11">11 por time</option>
+        <option value="12">12 por time</option>
+        <option value="13">13 por time</option>
+        <option value="14">14 por time</option>
+        <option value="15">15 por time</option>
+        <option value="16">16 por time</option>
+        <option value="17">17 por time</option>
+        <option value="18">18 por time</option>
+        <option value="19">19 por time</option>
+        <option value="20">20 por time</option>
+      </select>
+      <button onclick="sortearRacha()" class="btn-primary" style="margin-top:8px;">🎲 Sortear Rachão</button>
+      <div id="resultado-racha" style="margin-top:12px;"></div>
+      <button onclick="limparRacha()" class="btn-danger" style="margin-top:12px;">🔄 Limpar tudo</button>
+    </div>
+  </div>
+
+  <!-- Navegação -->
+  <nav class="nav">
+    <button onclick="show('home-screen')">🏠</button>
+    <button onclick="show('jogadores-screen')">👥</button>
+    <button onclick="show('sorteio-screen')">🎲</button>
+    <button onclick="show('ranking-screen')">📊</button>
+    <button onclick="show('festival-screen')">🎉</button>
+    <button onclick="show('racha-screen')">🏃</button>
+  </nav>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // ========== CONFIGURAÇÃO FIREBASE ==========
+    const firebaseConfig = {
+      apiKey: "AIzaSyCGairxEQSD-3S414aSK1cmFW2ZjgwD6PM",
+      authDomain: "athletic-park-sorteio.firebaseapp.com",
+      projectId: "athletic-park-sorteio",
+      storageBucket: "athletic-park-sorteio.firebasestorage.app",
+      messagingSenderId: "965818029854",
+      appId: "1:965818029854:web:82333905225c71827edb0f"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let usuarios = {};
+    let user = null;
+    let editandoNome = null;
+    function esc(s){ return String(s).replace(/['\\]/g, "\\$&"); }
+
+    // ========== LOGIN ==========
+    function loginGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).then((result) => {
+        user = result.user;
+        document.getElementById('login-msg').textContent = '';
+        carregarDados();
+        show('home-screen');
+      }).catch(err => {
+        document.getElementById('login-msg').textContent = 'Erro: ' + err.message;
+      });
+    }
+
+    // ========== NAVEGAÇÃO ==========
+    function show(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+      const map = { 'home-screen':0, 'jogadores-screen':1, 'sorteio-screen':2, 'ranking-screen':3, 'festival-screen':4, 'racha-screen':5 };
+      document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+      if (screenId in map) document.querySelectorAll('.nav button')[map[screenId]].classList.add('active');
+    }
+
+    // ========== DADOS DO FIRESTORE ==========
+    function carregarDados() {
+      user = auth.currentUser;
+      db.collection('jogadores').onSnapshot(snapshot => {
+        usuarios = {};
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          usuarios[doc.id] = { nota: data.nota || 3, foto: data.foto || null, freq: data.freq || 0, datas: data.datas || [] };
+        });
+        renderHome();
+        renderJogadores();
+        renderRanking();
+        renderFestival();
+      });
+    }
+
+    // ========== RENDERIZAÇÕES ==========
+    function renderHome() {
+      document.getElementById('resumo-card').innerHTML = `
+        <p><strong>Bem-vindo, ${user?.displayName || 'Jogador'}!</strong></p>
+        <p style="margin-top:8px;">Jogadores cadastrados: <strong>${Object.keys(usuarios).length}</strong></p>
+        <p>Presenças marcadas: <strong>${Object.values(usuarios).reduce((s,j) => s + j.datas.length, 0)}</strong></p>
+      `;
+    }
+
+    function renderJogadores() {
+      let html = '';
+      for (const [nome, info] of Object.entries(usuarios)) {
+        html += `<div class="jogador">
+          <div class="avatar">${info.foto ? '<img src="'+info.foto+'">' : '👤'}</div>
+          <div style="flex:1;"><strong>${nome}</strong><br>${'⭐'.repeat(info.nota)}${'☆'.repeat(5-info.nota)} <small>(${info.datas.length}x)</small></div>
+          <button onclick="editarJogador('${esc(nome)}')" style="width:auto;padding:6px 10px;background:#dbeafe;color:#1e3a5f;margin:0;font-size:12px;">✏️</button>
+          <button onclick="excluirJogador('${esc(nome)}')" style="width:auto;padding:6px 10px;background:#fee2e2;color:#b91c1c;margin:0;font-size:12px;">🗑️</button>
+        </div>`;
+      }
+      document.getElementById('lista-jogadores').innerHTML = html || '<p>Nenhum jogador ainda.</p>';
+    }
+
+    function renderRanking() {
+      const porFreq = Object.entries(usuarios).sort((a,b) => b[1].datas.length - a[1].datas.length);
+      document.getElementById('rank-frequencia').innerHTML = '<h3>🏆 Frequência</h3>' + porFreq.map(([n,i], idx) => `<p>${idx+1}. ${n} — ${i.datas.length}x</p>`).join('');
+      const porNota = Object.entries(usuarios).sort((a,b) => b[1].nota - a[1].nota);
+      document.getElementById('rank-nivel').innerHTML = '<h3>⭐ Nível</h3>' + porNota.map(([n,i], idx) => `<p>${idx+1}. ${n} — ${'⭐'.repeat(i.nota)}</p>`).join('');
+    }
+
+    function renderFestival() {
+      const frequentes = Object.entries(usuarios).filter(([n,i]) => i.datas.length >= 1);
+      document.getElementById('lista-festival').innerHTML = frequentes.map(([n,i]) => `<label><input type="checkbox" value="${n}" checked> ${n} (${i.datas.length}x)</label><br>`).join('');
+    }
+
+    // ========== JOGADORES (Firestore) ==========
+    function editarJogador(nome) {
+      editandoNome = nome;
+      document.getElementById('add-jogador-titulo').textContent = '✏️ Editar Jogador';
+      document.getElementById('novo-nome').value = nome;
+      document.getElementById('novo-nome').readOnly = true;
+      document.getElementById('novo-nota').value = String(usuarios[nome]?.nota || 3);
+      document.getElementById('novo-foto').value = '';
+      document.getElementById('add-jogador-btn').textContent = 'Atualizar';
+      show('add-jogador-screen');
+    }
+
+    function excluirJogador(nome) {
+      if (!confirm('Excluir ' + nome + '?')) return;
+      db.collection('jogadores').doc(nome).delete().then(() => {
+        alert(nome + ' excluído!');
+      }).catch(err => alert('Erro: ' + err.message));
+    }
+
+    function adicionarJogador() {
+      const nome = editandoNome || document.getElementById('novo-nome').value.trim();
+      const nota = parseInt(document.getElementById('novo-nota').value);
+      const file = document.getElementById('novo-foto').files[0];
+      if (!nome) return alert('Digite o nome.');
+      
+      const salvarNoFirestore = (fotoBase64) => {
+        db.collection('jogadores').doc(nome).set({
+          nota: nota,
+          foto: fotoBase64 !== null ? fotoBase64 : (editandoNome ? (usuarios[nome]?.foto || null) : null),
+          datas: editandoNome ? (usuarios[nome]?.datas || []) : []
+        }).then(() => {
+          editandoNome = null;
+          document.getElementById('add-jogador-titulo').textContent = '➕ Novo Jogador';
+          document.getElementById('novo-nome').value = '';
+          document.getElementById('novo-nome').readOnly = false;
+          document.getElementById('novo-foto').value = '';
+          document.getElementById('add-jogador-btn').textContent = 'Salvar';
+          show('jogadores-screen');
+        }).catch(err => alert('Erro ao salvar: ' + err.message));
+      };
+      
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const maxDim = 800;
+            let w = img.width, h = img.height;
+            if (w > h) { if (w > maxDim) { h *= maxDim/w; w = maxDim; } }
+            else { if (h > maxDim) { w *= maxDim/h; h = maxDim; } }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            const base64 = canvas.toDataURL('image/jpeg', 0.7);
+            salvarNoFirestore(base64);
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      } else {
+        salvarNoFirestore(null);
+      }
+    }
+
+    // ========== SORTEIO ==========
+    function sortearTimes() {
+      const tipo = document.getElementById('tipo-sorteio').value;
+      const porTime = parseInt(document.getElementById('quantos-por-time').value);
+      const lista = Object.entries(usuarios).map(([nome, info]) => ({nome, nota: info.nota}));
+      if (lista.length < 2) return alert('Cadastre pelo menos 2 jogadores.');
+      
+      let times = [];
+      if (tipo === 'aleatorio') {
+        for (let i = lista.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [lista[i], lista[j]] = [lista[j], lista[i]];
+        }
+        for (let i = 0; i < lista.length; i += porTime) times.push(lista.slice(i, i + porTime));
+      } else {
+        const ordenados = [...lista].sort((a,b) => b.nota - a.nota);
+        const nTimes = Math.ceil(lista.length / porTime);
+        times = Array.from({length: nTimes}, () => []);
+        ordenados.forEach((j, idx) => times[idx % nTimes].push(j));
+      }
+      
+      let html = '';
+      times.forEach((t, i) => {
+        const media = (t.reduce((s,j) => s + j.nota, 0) / t.length).toFixed(1);
+        html += `<div class="team-box"><strong>Time ${String.fromCharCode(65+i)}</strong> <small>(média ${media})</small><br>`;
+        html += t.map(j => `• ${j.nome} ${'⭐'.repeat(j.nota)}`).join('<br>');
+        html += '</div>';
+      });
+      document.getElementById('resultado-sorteio').innerHTML = html;
+    }
+
+    function sortearFestival() {
+      const selecionados = [...document.querySelectorAll('#lista-festival input:checked')].map(cb => cb.value);
+      if (selecionados.length < 2) return alert('Selecione pelo menos 2.');
+      const porTime = 5;
+      const lista = selecionados.map(n => ({nome: n, nota: usuarios[n].nota}));
+      const ordenados = [...lista].sort((a,b) => b.nota - a.nota);
+      const nTimes = Math.ceil(lista.length / porTime);
+      const times = Array.from({length: nTimes}, () => []);
+      ordenados.forEach((j, idx) => times[idx % nTimes].push(j));
+      let html = '';
+      times.forEach((t, i) => {
+        html += `<div class="team-box"><strong>Time ${String.fromCharCode(65+i)}</strong><br>${t.map(j => '• '+j.nome).join('<br>')}</div>`;
+      });
+      document.getElementById('resultado-festival').innerHTML = html;
+    }
+
+    // ========== FREQUÊNCIA (Firestore - presença manual com calendário) ==========
+    function mostrarPresenca() {
+      const container = document.getElementById('presenca-container');
+      if (Object.keys(usuarios).length === 0) {
+        container.innerHTML = '<p>Nenhum jogador cadastrado.</p>';
+        container.style.display = 'block';
+        return;
+      }
+      const hoje = new Date().toISOString().slice(0,10);
+      let html = '<h3>✅ Marcar presença</h3>';
+      html += '<label style="font-size:13px;color:#334155;">Data do jogo:</label>';
+      html += '<input type="date" id="presenca-data" value="'+hoje+'" style="margin-bottom:12px;">';
+      html += '<p style="font-size:12px;color:#64748b;margin-bottom:8px;">Marque quem veio:</p>';
+      for (const [nome, info] of Object.entries(usuarios)) {
+        const jaMarcado = info.datas.includes(hoje);
+        html += `<label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9;cursor:pointer;">
+          <input type="checkbox" class="presenca-check" value="${esc(nome)}" ${jaMarcado ? 'checked' : 'checked'}>
+          <span>${nome}</span><small style="color:#94a3b8;margin-left:auto;">${info.datas.length}x</small>
+        </label>`;
+      }
+      html += `<button onclick="confirmarPresenca()" class="btn-primary" style="margin-top:12px;">✅ Confirmar presença</button>`;
+      html += '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #e2e8f0;"><h4 style="margin-bottom:8px;">📅 Histórico</h4>'+historicoHTML()+'</div>';
+      container.innerHTML = html;
+      container.style.display = 'block';
+    }
+
+    function historicoHTML() {
+      const porData = {};
+      for (const [nome, info] of Object.entries(usuarios)) {
+        info.datas.forEach(d => { porData[d] = porData[d] || []; porData[d].push(nome); });
+      }
+      const datas = Object.keys(porData).sort().reverse();
+      if (datas.length === 0) return '<p style="font-size:12px;color:#94a3b8;">Nenhuma presença registrada ainda.</p>';
+      return datas.map(d => `<p style="font-size:12px;">📅 ${d} — ${porData[d].length}x (${porData[d].join(', ')})</p>`).join('');
+    }
+
+    function confirmarPresenca() {
+      const data = document.getElementById('presenca-data').value;
+      if (!data) return alert('Selecione a data.');
+      const marcados = [...document.querySelectorAll('.presenca-check:checked')].map(cb => cb.value);
+      if (marcados.length === 0) return alert('Selecione pelo menos 1 jogador.');
+      const batch = db.batch();
+      marcados.forEach(nome => {
+        batch.update(db.collection('jogadores').doc(nome), { datas: firebase.firestore.FieldValue.arrayUnion(data) });
+      });
+      batch.commit().then(() => {
+        alert('✅ Presença marcada para ' + marcados.length + ' jogador(es) em ' + data);
+        document.getElementById('presenca-container').innerHTML = '';
+        document.getElementById('presenca-container').style.display = 'none';
+      }).catch(err => alert('Erro: ' + err.message));
+    }
+
+    // ========== RACHÃO (sorteio livre) ==========
+    let rachaJogadores = [];
+
+    function addRachaName() {
+      const input = document.getElementById('racha-nome');
+      const nome = input.value.trim();
+      if (!nome) return alert('Digite um nome.');
+      if (rachaJogadores.includes(nome)) return alert('Esse nome já foi adicionado.');
+      rachaJogadores.push(nome);
+      input.value = '';
+      renderRachaList();
+    }
+
+    function removeRachaName(nome) {
+      rachaJogadores = rachaJogadores.filter(n => n !== nome);
+      renderRachaList();
+    }
+
+    function renderRachaList() {
+      const div = document.getElementById('lista-racha');
+      if (rachaJogadores.length === 0) {
+        div.innerHTML = '<p style="font-size:13px;color:#94a3b8;">Nenhum nome adicionado.</p>';
+        return;
+      }
+      div.innerHTML = rachaJogadores.map(nome => `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+        <span>${nome}</span>
+        <button onclick="removeRachaName('${esc(nome)}')" style="width:auto;padding:4px 8px;background:#fee2e2;color:#b91c1c;font-size:12px;margin:0;">✕</button>
+      </div>`).join('');
+    }
+
+    function sortearRacha() {
+      if (rachaJogadores.length < 2) return alert('Adicione pelo menos 2 nomes.');
+      const porTime = parseInt(document.getElementById('racha-por-time').value);
+      const lista = rachaJogadores.map(nome => ({nome, nota: 3}));
+      for (let i = lista.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [lista[i], lista[j]] = [lista[j], lista[i]];
+      }
+      const times = [];
+      for (let i = 0; i < lista.length; i += porTime) times.push(lista.slice(i, i + porTime));
+      let html = '';
+      times.forEach((t, i) => {
+        html += `<div class="team-box"><strong>Time ${String.fromCharCode(65+i)}</strong><br>${t.map(j => '• '+j.nome).join('<br>')}</div>`;
+      });
+      document.getElementById('resultado-racha').innerHTML = html;
+      rachaJogadores = [];
+      renderRachaList();
+      document.getElementById('racha-nome').value = '';
+    }
+
+    function limparRacha() {
+      rachaJogadores = [];
+      renderRachaList();
+      document.getElementById('racha-nome').value = '';
+      document.getElementById('resultado-racha').innerHTML = '';
+    }
+
+    document.getElementById('racha-nome').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') addRachaName();
+    });
+
+    // ========== REMOVER BADGE NETLIFY ==========
+    function removerBadgeNetlify() {
+      const seletores = [
+        '[data-netlify="true"]',
+        '.netlify-badge', '#netlify-badge',
+        '.netlify-button', '.netlify-banner',
+        'footer[class*="netlify"]', '#netlify-redirect',
+        'div[id*="netlify"]', '.netlify-fingerprint',
+        '#nf-banner', '.nf-banner',
+        '[class*="powered"]', '[id*="Powered"]',
+        '[class*="Powered"]', '[id*="powered"]'
+      ];
+      seletores.forEach(sel => {
+        document.querySelectorAll(sel).forEach(el => el.remove());
+      });
+    }
+    removerBadgeNetlify();
+    setTimeout(removerBadgeNetlify, 500);
+    setTimeout(removerBadgeNetlify, 2000);
+    setTimeout(removerBadgeNetlify, 5000);
+    const observer = new MutationObserver(removerBadgeNetlify);
+    observer.observe(document.body, { childList: true, subtree: true });
+  </script>
+</body>
+</html>
