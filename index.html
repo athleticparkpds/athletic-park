@@ -1,6 +1,9 @@
+Perfeito! Agora vou te mandar o código completo atualizado. Copia tudo e cola no lugar do que você apagou.
+
+<artifact id="athletic-park-sorteio-app" type="html" title="Athletic Park Sorteio - App Real">
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head><script src="https://myhub.ia.br/canvas-vendor/tailwind.js"></script>
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Athletic Park</title>
@@ -25,7 +28,9 @@
     .avatar img { width: 100%; height: 100%; object-fit: cover; }
     .team-box { background: #f8fafc; border-radius: 12px; padding: 14px; margin-bottom: 12px; border-left: 4px solid #1e3a5f; }
     .logo-header { display:block; margin:20px auto 12px; width:120px; height:120px; object-fit:contain; border-radius:50%; box-shadow:0 4px 12px rgba(0,0,0,0.15); }
-    /* Esconde badge Netlify */
+    .historico-item { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px; margin:8px 0; background:#fff; border:1px solid #e2e8f0; border-radius:10px; flex-wrap:wrap; }
+    .btn-excluir-data { background:#fee2e2; color:#b91c1c; border:2px solid #b91c1c; border-radius:8px; padding:8px 14px; font-size:13px; cursor:pointer; width:auto; margin:0; white-space:nowrap; font-weight:600; flex-shrink:0; }
+    .btn-excluir-data:hover { background:#fecaca; }
     .netlify-badge, #netlify-badge, [data-netlify="true"], .netlify-button, footer[class*="netlify"], #netlify-redirect, .netlify-banner, div[id*="netlify"], .netlify-fingerprint, #nf-banner, .nf-banner, [class*="powered"], [id*="Powered"], [class*="Powered"], [id*="powered"] { display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; overflow: hidden !important; }
     @media (max-width: 480px) { .container { box-shadow: none; } }
   </style>
@@ -410,7 +415,36 @@
       }
       const datas = Object.keys(porData).sort().reverse();
       if (datas.length === 0) return '<p style="font-size:12px;color:#94a3b8;">Nenhuma presença registrada ainda.</p>';
-      return datas.map(d => `<p style="font-size:12px;">📅 ${d} — ${porData[d].length}x (${porData[d].join(', ')})</p>`).join('');
+      return datas.map(d => {
+        const nomes = porData[d];
+        return `<div class="historico-item">
+          <div style="flex:1;min-width:0;">
+            <strong style="font-size:14px;">📅 ${formatarData(d)}</strong><br>
+            <span style="font-size:12px;color:#64748b;">${nomes.length}x — ${nomes.join(', ')}</span>
+          </div>
+          <button class="btn-excluir-data" onclick="excluirPresenca('${d}')">🗑️ Excluir dia</button>
+        </div>`;
+      }).join('');
+    }
+
+    function formatarData(d) {
+      const partes = d.split('-');
+      return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+
+    function excluirPresenca(data) {
+      const nomes = Object.entries(usuarios).filter(([n,i]) => i.datas.includes(data)).map(([n]) => n);
+      if (!confirm('Excluir presença de ' + formatarData(data) + '?\n\nIsso vai subtrair 1 da frequência de:\n' + nomes.join(', ') + '\n\nEssa ação não pode ser desfeita.')) return;
+      const batch = db.batch();
+      Object.keys(usuarios).forEach(nome => {
+        if (usuarios[nome].datas.includes(data)) {
+          batch.update(db.collection('jogadores').doc(nome), { datas: firebase.firestore.FieldValue.arrayRemove(data) });
+        }
+      });
+      batch.commit().then(() => {
+        alert('✅ Presença de ' + formatarData(data) + ' excluída!\nFrequência de ' + nomes.length + ' jogador(es) subtraída.');
+        mostrarPresenca();
+      }).catch(err => alert('Erro: ' + err.message));
     }
 
     function confirmarPresenca() {
@@ -423,7 +457,7 @@
         batch.update(db.collection('jogadores').doc(nome), { datas: firebase.firestore.FieldValue.arrayUnion(data) });
       });
       batch.commit().then(() => {
-        alert('✅ Presença marcada para ' + marcados.length + ' jogador(es) em ' + data);
+        alert('✅ Presença marcada para ' + marcados.length + ' jogador(es) em ' + formatarData(data));
         document.getElementById('presenca-container').innerHTML = '';
         document.getElementById('presenca-container').style.display = 'none';
       }).catch(err => alert('Erro: ' + err.message));
@@ -515,3 +549,12 @@
   </script>
 </body>
 </html>
+</artifact>
+
+Pronto, Jonatas! Agora é só:
+
+1. **Clica no ícone de copiar** 📋 no canto do artefato acima
+2. **Cola no GitHub** (onde você apagou tudo)
+3. **Clica em "Confirmar alterações"** 🟢
+
+Em ~30 segundos o Vercel atualiza e o botão **"🗑️ Excluir dia"** vai aparecer destacado em vermelho no histórico. Ao clicar, ele mostra os nomes e subtrai a frequência de cada um automaticamente! ✅⚽
