@@ -121,6 +121,28 @@
       <h2>🎉 Festival Mensal</h2>
       <p style="font-size:13px; color:#64748b; margin-bottom:12px;">Selecione os participantes e sorteie times equilibrados para o festival.</p>
       <div id="lista-festival"></div>
+      <select id="festival-por-time" style="margin-top:12px;">
+        <option value="1">1 jogador por time</option>
+        <option value="2">2 por time</option>
+        <option value="3">3 por time</option>
+        <option value="4">4 por time</option>
+        <option value="5" selected>5 por time</option>
+        <option value="6">6 por time</option>
+        <option value="7">7 por time</option>
+        <option value="8">8 por time</option>
+        <option value="9">9 por time</option>
+        <option value="10">10 por time</option>
+        <option value="11">11 por time</option>
+        <option value="12">12 por time</option>
+        <option value="13">13 por time</option>
+        <option value="14">14 por time</option>
+        <option value="15">15 por time</option>
+        <option value="16">16 por time</option>
+        <option value="17">17 por time</option>
+        <option value="18">18 por time</option>
+        <option value="19">19 por time</option>
+        <option value="20">20 por time</option>
+      </select>
       <button onclick="sorteioFestival()" class="btn-primary">🎲 Sortear Festival</button>
       <div id="resultado-festival" style="margin-top:12px;"></div>
     </div>
@@ -364,10 +386,10 @@
       document.getElementById('resultado-sorteio').innerHTML = html;
     }
 
-    function sortearFestival() {
+    function sorteioFestival() {
       const selecionados = [...document.querySelectorAll('#lista-festival input:checked')].map(cb => cb.value);
       if (selecionados.length < 2) return alert('Selecione pelo menos 2.');
-      const porTime = 5;
+      const porTime = parseInt(document.getElementById('festival-por-time').value);
       const lista = selecionados.map(n => ({nome: n, nota: usuarios[n].nota}));
       const ordenados = [...lista].sort((a,b) => b.nota - a.nota);
       const nTimes = Math.ceil(lista.length / porTime);
@@ -375,7 +397,10 @@
       ordenados.forEach((j, idx) => times[idx % nTimes].push(j));
       let html = '';
       times.forEach((t, i) => {
-        html += `<div class="team-box"><strong>Time ${String.fromCharCode(65+i)}</strong><br>${t.map(j => '• '+j.nome).join('<br>')}</div>`;
+        const media = (t.reduce((s,j) => s + j.nota, 0) / t.length).toFixed(1);
+        html += `<div class="team-box"><strong>Time ${String.fromCharCode(65+i)}</strong> <small>(média ${media})</small><br>`;
+        html += t.map(j => '• '+j.nome).join('<br>');
+        html += '</div>';
       });
       document.getElementById('resultado-festival').innerHTML = html;
     }
@@ -547,5 +572,4 @@
   </script>
 </body>
 </html>
-
-
+</artifact>
